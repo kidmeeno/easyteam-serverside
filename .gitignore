@@ -1,0 +1,43 @@
+# Ignore node_modules directory (for Node.js)
+node_modules/
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore environment variables
+.env
+.env.local
+.env.*.local
+
+# Ignore any temporary or generated files
+temp/
+*.tmp
+*.cache
+
+# Ignore build directories and files
+dist/
+build/
+out/
+coverage/
+
+# Ignore IDE-specific files (for common editors)
+.vscode/
+.idea/
+.DS_Store  # macOS-specific hidden files
+*.swp      # vi swap files
+
+# Ignore npm debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore lock files (optional, depending on your workflow)
+package-lock.json
+yarn.lock
+
+# Ignore local Docker-related files
+docker-compose.override.yml
+
+# Ignore OS-specific files
+Thumbs.db
