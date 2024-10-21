@@ -10,7 +10,6 @@ app.use(express.json());
 app.use(cors());
 
 // Import Routes
-const authRoute = require('./routes/auth');
 const employeeRoute = require('./routes/employees');
 const shiftRoute = require('./routes/shifts');
 const settingsRoute = require('./routes/settings');
@@ -23,7 +22,6 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 ;
 
 // Route Middleware
-app.use('/api/auth', authRoute);
 app.use('/api/employees', employeeRoute);
 app.use('/api/shifts', shiftRoute);
 app.use('/api/settings', settingsRoute);
