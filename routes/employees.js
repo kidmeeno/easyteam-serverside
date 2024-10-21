@@ -63,12 +63,12 @@ router.post("/employee-login", async (req, res) => {
     accessRole: employeePayload.accessRole,
     role: employeePayload.role,
   };
-  const privateKeyPath = path.join(__dirname, "../jwtRS256.key");
+  const privateKeyPath = path.join(__dirname, "../priv.key");
   const privateKey = fs.readFileSync(privateKeyPath, "utf8");
   const token = jwt.sign(payload, privateKey, { algorithm: "RS256" });
   res
     .header("auth-token", token)
-    .send({ token, employee, employees: formattedEmployees });
+    .send({ token, employee:employeePayload, employees: formattedEmployees });
 });
 
 // GET all employees
