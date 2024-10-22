@@ -19,7 +19,7 @@ This is the backend API for EasyTeam, an employee time tracking solution. The AP
 ## Technologies Used
 - **Node.js** - JavaScript runtime
 - **Express.js** - Web framework for Node.js
-- **MongoDB** - NoSQL database for data persistence
+- **MongoDB** - you will have to create a mongoDB account if you dont have one. refer to this link https://www.mongodb.com/
 - **Mongoose** - ODM for MongoDB
 - **JWT (JSON Web Tokens)** - For authentication
 - **bcrypt** - For hashing passwords
