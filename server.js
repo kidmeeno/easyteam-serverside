@@ -11,7 +11,6 @@ app.use(cors());
 
 // Import Routes
 const employeeRoute = require("./routes/employees");
-const shiftRoute = require("./routes/shifts");
 const settingsRoute = require("./routes/settings");
 const location = require("./routes/location");
 
@@ -24,7 +23,6 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB", err));
 // Route Middleware
 app.use("/api/employees", employeeRoute);
-app.use("/api/shifts", shiftRoute);
 app.use("/api/settings", settingsRoute);
 app.use("/api/locations", location);
 // Start server
