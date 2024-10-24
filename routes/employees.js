@@ -6,6 +6,7 @@ const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const Employee = require("../models/Employee");
 const verifyToken = require("../middleware/auth");
+const Settings = require("../models/Settings");
 
 // CREATE an employee
 router.post("/create", async (req, res) => {
@@ -38,6 +39,7 @@ router.post("/employee-login", async (req, res) => {
   const { email, password } = req.body;
 
   const employee = await Employee.findOne({ email });
+  const settings = await Settings.findOne();
   const employees = await Employee.find();
 
   if (!employee) return res.status(400).send("Email or password is wrong.");
@@ -68,13 +70,15 @@ router.post("/employee-login", async (req, res) => {
   });
 
   let employeesToReturn;
-  if (employee.role.name === 'regular') {
-    employeesToReturn = [{
-      id: employee._id,
-      payrollId: employee.payrollId,
-      name: employee.username,
-      picture: "https://randomuser.me/api/portraits/men/1.jpg",
-    }];
+  if (employee.role.name === "regular") {
+    employeesToReturn = [
+      {
+        id: employee._id,
+        payrollId: employee.payrollId,
+        name: employee.username,
+        picture: "https://randomuser.me/api/portraits/men/1.jpg",
+      },
+    ];
   } else {
     employeesToReturn = formattedEmployees;
   }
@@ -82,12 +86,15 @@ router.post("/employee-login", async (req, res) => {
   const privateKeyPath = path.join(__dirname, "../priv.key");
   const privateKey = fs.readFileSync(privateKeyPath, "utf8");
   const token = jwt.sign(payload, privateKey, { algorithm: "RS256" });
-
   res
     .header("auth-token", token)
-    .send({ token, employee: employeePayload, employees: employeesToReturn });
+    .send({
+      token,
+      employee: employeePayload,
+      employees: employeesToReturn,
+      isGlobalTrackingEnabled: settings.isGlobalTrackingEnabled,
+    });
 });
-
 
 // GET all employees
 router.get("/", verifyToken, async (req, res) => {
@@ -118,7 +125,7 @@ router.put("/:id", verifyToken, async (req, res) => {
     const updatedEmployee = await Employee.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true } // Return the updated employee
+      { new: true } 
     );
 
     if (!updatedEmployee) {
