@@ -39,19 +39,12 @@ router.post("/employee-login", async (req, res) => {
 
   const employee = await Employee.findOne({ email });
   const employees = await Employee.find();
-  if (!employee) return res.status(400).send("email or password is wrong.");
+
+  if (!employee) return res.status(400).send("Email or password is wrong.");
 
   const validPass = await bcrypt.compare(password, employee.password);
   if (!validPass) return res.status(400).send("Invalid password.");
-  const formattedEmployees = employees.map((employee) => {
-    const plainEmployee = employee.toObject();
-    return {
-      id: plainEmployee._id,
-      payrollId: plainEmployee.payrollId,
-      name: plainEmployee.username,
-      picture: "https://randomuser.me/api/portraits/men/1.jpg", // seeded this for text purpose
-    };
-  });
+
   const employeePayload = employee.toObject();
   const payload = {
     employeeId: employeePayload.employeeId,
@@ -63,13 +56,38 @@ router.post("/employee-login", async (req, res) => {
     accessRole: employeePayload.accessRole,
     role: employeePayload.role,
   };
+
+  const formattedEmployees = employees.map((emp) => {
+    const plainEmployee = emp.toObject();
+    return {
+      id: plainEmployee._id,
+      payrollId: plainEmployee.payrollId,
+      name: plainEmployee.username,
+      picture: "https://randomuser.me/api/portraits/men/1.jpg",
+    };
+  });
+
+  let employeesToReturn;
+  if (employee.role.name === 'regular') {
+    employeesToReturn = [{
+      id: employee._id,
+      payrollId: employee.payrollId,
+      name: employee.username,
+      picture: "https://randomuser.me/api/portraits/men/1.jpg",
+    }];
+  } else {
+    employeesToReturn = formattedEmployees;
+  }
+
   const privateKeyPath = path.join(__dirname, "../priv.key");
   const privateKey = fs.readFileSync(privateKeyPath, "utf8");
   const token = jwt.sign(payload, privateKey, { algorithm: "RS256" });
+
   res
     .header("auth-token", token)
-    .send({ token, employee:employeePayload, employees: formattedEmployees });
+    .send({ token, employee: employeePayload, employees: employeesToReturn });
 });
+
 
 // GET all employees
 router.get("/", verifyToken, async (req, res) => {
