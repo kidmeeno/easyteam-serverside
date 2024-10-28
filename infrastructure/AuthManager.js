@@ -17,6 +17,12 @@ class AuthManager {
     const privateKey = fs.readFileSync(privateKeyPath, "utf8");
     return jwt.sign(payload, privateKey, { algorithm: "RS256" });
   }
+
+  static verifyToken(token) {
+    const privateKeyPath = path.join(__dirname, "../priv.key");
+    const privateKey = fs.readFileSync(privateKeyPath, "utf8");
+    return jwt.verify(token, privateKey, { algorithm: "RS256" });
+  }
 }
 
 module.exports = AuthManager;

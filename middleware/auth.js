@@ -1,15 +1,11 @@
-const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
-const { JWT_SECRET } = require("../infrastructure/environmentalVariables");
-
-dotenv.config();
+const AuthManager = require("../infrastructure/AuthManager");
 
 const verifyToken = (req, res, next) => {
   const token = req.header("auth-token");
   if (!token) return res.status(401).send("Access Denied");
 
   try {
-    const verified = jwt.verify(token, JWT_SECRET);
+    const verified = AuthManager.verifyToken(token);
     req.user = verified;
     next();
   } catch (err) {
