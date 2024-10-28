@@ -1,6 +1,7 @@
 const express = require("express");
 const verifyToken = require("../middleware/auth");
 const Settings = require("../models/Settings");
+const Logger = require("../infrastructure/Logger");
 const router = express.Router();
 
 router.get("/", verifyToken, async (req, res) => {
@@ -13,7 +14,7 @@ router.get("/", verifyToken, async (req, res) => {
       res.send({ isGlobalTrackingEnabled: false });
     }
   } catch (error) {
-    console.error("Error fetching settings:", error);
+    Logger.error("Error fetching settings:", error);
     res.status(500).send("An error occurred while fetching settings");
   }
 });
@@ -36,7 +37,7 @@ router.put("/", verifyToken, async (req, res) => {
 
     res.send(settings.isGlobalTrackingEnabled);
   } catch (error) {
-    console.error("Error updating settings:", error);
+    Logger.error("Error updating settings:", error);
     res.status(500).send("An error occurred while updating settings");
   }
 });
