@@ -1,10 +1,9 @@
-const express = require('express');
-const verifyToken = require('../middleware/auth');
-const Settings = require('../models/Settings'); 
+const express = require("express");
+const verifyToken = require("../middleware/auth");
+const Settings = require("../models/Settings");
 const router = express.Router();
 
-
-router.get('/', verifyToken, async (req, res) => {
+router.get("/", verifyToken, async (req, res) => {
   try {
     const settings = await Settings.findOne();
 
@@ -14,12 +13,12 @@ router.get('/', verifyToken, async (req, res) => {
       res.send({ isGlobalTrackingEnabled: false });
     }
   } catch (error) {
-    console.error('Error fetching settings:', error);
-    res.status(500).send('An error occurred while fetching settings');
+    console.error("Error fetching settings:", error);
+    res.status(500).send("An error occurred while fetching settings");
   }
 });
 
-router.put('/', async (req, res) => {
+router.put("/", verifyToken, async (req, res) => {
   try {
     const { isGlobalTrackingEnabled } = req.body;
 
@@ -37,8 +36,8 @@ router.put('/', async (req, res) => {
 
     res.send(settings.isGlobalTrackingEnabled);
   } catch (error) {
-    console.error('Error updating settings:', error);
-    res.status(500).send('An error occurred while updating settings');
+    console.error("Error updating settings:", error);
+    res.status(500).send("An error occurred while updating settings");
   }
 });
 

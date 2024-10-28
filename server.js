@@ -1,7 +1,10 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+
+const DatabaseClient = require("./infrastructure/DatabaseClient");
+const Logger = require("./infrastructure/Logger");
+const { PORT, MONGO_URI } = require("./infrastructure/environmentalVariables");
 
 dotenv.config();
 
@@ -9,25 +12,18 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Import Routes
 const employeeRoute = require("./routes/employees");
 const settingsRoute = require("./routes/settings");
 const location = require("./routes/location");
 
-// Connect to DB
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected");
-  })
-  .catch((err) => console.error("Could not connect to MongoDB", err));
+
+const dbClient = new DatabaseClient(MONGO_URI);
+dbClient.connect();
 
 app.use("/api/employees", employeeRoute);
 app.use("/api/settings", settingsRoute);
 app.use("/api/locations", location);
 
-
-const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  Logger.info(`Server is running on port ${PORT}`);
 });

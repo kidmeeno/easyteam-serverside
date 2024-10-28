@@ -1,17 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcryptjs");
 const path = require("path");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const Employee = require("../models/Employee");
 const verifyToken = require("../middleware/auth");
 const Settings = require("../models/Settings");
+const AuthManager = require("../infrastructure/AuthManager");
 
-// CREATE an employee
 router.post("/create", async (req, res) => {
   try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const hashedPassword = await AuthManager.hashPassword(
+      req.body.password,
+      10
+    );
     const newEmployee = new Employee({
       username: req.body.username,
       email: req.body.email,
@@ -38,63 +40,69 @@ router.post("/create", async (req, res) => {
 router.post("/employee-login", async (req, res) => {
   const { email, password } = req.body;
 
-  const employee = await Employee.findOne({ email });
-  const settings = await Settings.findOne();
-  const employees = await Employee.find();
+  try {
+    const [employee, settings, employees] = await Promise.all([
+      Employee.findOne({ email }),
+      Settings.findOne(),
+      Employee.find()
+    ]);
 
-  if (!employee) return res.status(400).send("Email or password is wrong.");
+    if (!employee) {
+      return res.status(400).send("Email or password is wrong.");
+    }
 
-  const validPass = await bcrypt.compare(password, employee.password);
-  if (!validPass) return res.status(400).send("Invalid password.");
+    const validPass = await AuthManager.comparePassword(password, employee.password);
+    if (!validPass) {
+      return res.status(400).send("Invalid password.");
+    }
 
-  const employeePayload = employee.toObject();
-  const payload = {
-    employeeId: employeePayload.employeeId,
-    locationId: employeePayload.locationId,
-    organizationId: employeePayload.organizationId,
-    partnerId: employeePayload.partnerId,
-    payrollId: employeePayload.payrollId,
-    employerPayrollId: employeePayload.employerPayrollId,
-    accessRole: employeePayload.accessRole,
-    role: employeePayload.role,
-  };
-
-  const formattedEmployees = employees.map((emp) => {
-    const plainEmployee = emp.toObject();
-    return {
-      id: plainEmployee._id,
-      payrollId: plainEmployee.payrollId,
-      name: plainEmployee.username,
-      picture: "https://randomuser.me/api/portraits/men/1.jpg",
+    const employeePayload = employee.toObject();
+    const payload = {
+      employeeId: employeePayload._id,
+      locationId: employeePayload.locationId,
+      organizationId: employeePayload.organizationId,
+      partnerId: employeePayload.partnerId,
+      payrollId: employeePayload.payrollId,
+      employerPayrollId: employeePayload.employerPayrollId,
+      accessRole: employeePayload.accessRole,
+      role: employeePayload.role,
     };
-  });
 
-  let employeesToReturn;
-  if (employee.role.name === "regular") {
-    employeesToReturn = [
-      {
-        id: employee._id,
-        payrollId: employee.payrollId,
-        name: employee.username,
+    const formattedEmployees = employees.map((emp) => {
+      const plainEmployee = emp.toObject();
+      return {
+        id: plainEmployee._id,
+        payrollId: plainEmployee.payrollId,
+        name: plainEmployee.username,
         picture: "https://randomuser.me/api/portraits/men/1.jpg",
-      },
-    ];
-  } else {
-    employeesToReturn = formattedEmployees;
-  }
+      };
+    });
 
-  const privateKeyPath = path.join(__dirname, "../priv.key");
-  const privateKey = fs.readFileSync(privateKeyPath, "utf8");
-  const token = jwt.sign(payload, privateKey, { algorithm: "RS256" });
-  
-  res
-    .header("auth-token", token)
-    .send({
+    let employeesToReturn;
+    if (employee.role.name === "regular") {
+      employeesToReturn = [
+        {
+          id: employee._id,
+          payrollId: employee.payrollId,
+          name: employee.username,
+          picture: "https://randomuser.me/api/portraits/men/1.jpg",
+        },
+      ];
+    } else {
+      employeesToReturn = formattedEmployees;
+    }
+
+    const token = AuthManager.generateToken(payload);
+
+    res.header("auth-token", token).send({
       token,
       employee: employeePayload,
       employees: employeesToReturn,
       isGlobalTrackingEnabled: settings.isGlobalTrackingEnabled,
     });
+  } catch (error) {
+    res.status(500).send("Internal server error.");
+  }
 });
 
 // GET all employees
@@ -126,7 +134,7 @@ router.put("/:id", verifyToken, async (req, res) => {
     const updatedEmployee = await Employee.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true } 
+      { new: true }
     );
 
     if (!updatedEmployee) {
