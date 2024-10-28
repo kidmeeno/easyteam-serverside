@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Location = require('../models/Location'); 
+const Logger = require('../infrastructure/Logger');
 
 router.post('/', async (req, res) => {
   try {
@@ -15,7 +16,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(savedLocation); 
   } catch (error) {
-    console.error('Error creating location:', error);
+    Logger.error('Error creating location:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -26,7 +27,7 @@ router.get('/', async (req, res) => {
     const locations = await Location.find(); 
     res.status(200).json(locations);
   } catch (error) {
-    console.error('Error fetching locations:', error);
+    Logger.error('Error fetching locations:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -49,7 +50,7 @@ router.put('/:id', async (req, res) => {
 
     res.status(200).json(updatedLocation); 
   } catch (error) {
-    console.error('Error updating location:', error);
+    Logger.error('Error updating location:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
